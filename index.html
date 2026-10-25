@@ -101,7 +101,6 @@
 
   #ch-grid { display: flex; flex-direction: column; gap: 14px; }
 
-  /* Animated Match Cards */
   .ch-card {
     background: var(--card-bg); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px;
     cursor: pointer; text-decoration: none; display: flex; align-items: center;
@@ -141,7 +140,6 @@
   .share-btn:hover { background: rgba(255, 42, 109, 0.3); transform: translateY(-50%) scale(1.15) rotate(10deg); box-shadow: 0 6px 16px var(--accent-glow); }
   .share-btn svg { width: 15px; height: 15px; fill: var(--accent-pink); }
 
-  /* Detailed Waiting Screen */
   #waiting-screen {
     position: fixed; inset: 0; background: var(--bg-main); z-index: 10000;
     display: none; flex-direction: column; align-items: center; justify-content: center;
@@ -166,7 +164,6 @@
   }
   .back-home-btn:hover { border-color: var(--accent-pink); background: rgba(255,42,109,0.1); transform: translateY(-2px); }
 
-  /* Player View */
   #player-view {
     padding: 0 !important; max-width: 100% !important; background: #000000 !important;
   }
@@ -185,7 +182,6 @@
   .player-share-overlay:hover { transform: scale(1.08) translateY(-2px); }
   .player-share-overlay svg { width: 14px; height: 14px; fill: var(--accent-pink); }
 
-  /* Minimal, Highly Sensitive & Super Smooth Center Popup Modal */
   .overlay {
     position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
@@ -241,12 +237,12 @@
 
   <div id="status"></div>
 
-  <!-- Detailed Waiting Page -->
+  <!-- Waiting Page -->
   <div id="waiting-screen">
     <div class="waiting-card">
       <img id="waitingImg" class="waiting-img" src="" alt="Poster" style="display:none;">
       <h2 id="waitingTitle" class="waiting-title">Loading Match Details...</h2>
-      <p style="font-size: 13px; color: #94A3B8;">Yeh match jald hi shuru hone wala hai. Match live hote hi stream automatically play ho jayegi!</p>
+      <p style="font-size: 13px; color: #94A3B8;">This match will start shortly. The stream will automatically play once it goes live!</p>
       <div class="waiting-time-box">
         <div style="font-size:11.5px; color:#94A3B8; font-weight:600;">Scheduled Start Time</div>
         <div id="waitingTimeVal" class="waiting-time-val">—</div>
@@ -289,7 +285,7 @@
     </div>
   </div>
 
-  <!-- Minimal & Clean Center Popup Modal -->
+  <!-- Sportlink10 Center Popup Modal -->
   <div class="overlay" id="sportlink-popup">
     <div class="popup-card">
       <div style="width: 48px; height: 48px; background: rgba(255,42,109,0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 1px solid rgba(255,42,109,0.35);">
@@ -297,7 +293,7 @@
       </div>
       <div>
         <h3>Join Sportlink10</h3>
-        <p>HD live matches aur instant backup links ke liye hamara official channel join karein.</p>
+        <p>Join our official channel for HD live matches and instant backup links.</p>
       </div>
       <div class="popup-actions">
         <button class="popup-btn-join" id="popup-join-btn">Join Telegram Channel →</button>
@@ -358,7 +354,7 @@
         setTimeout(function() {
           var popup = document.getElementById('sportlink-popup');
           if (popup) popup.classList.add('show');
-        }, 1000);
+        }, 1200);
       }
 
       function toast(msg, dur){
