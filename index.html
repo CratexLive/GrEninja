@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Sportlink10 · Live Streaming</title>
+
+<link rel="preconnect" href="https://raw.githubusercontent.com">
+<link rel="dns-prefetch" href="https://raw.githubusercontent.com">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/controls.css" crossorigin="anonymous">
+<style>
+  :root {
+    --bg-main: #000000;
+    --card-bg: #12161F;
+    --card-hover: #1A202C;
+    --accent-pink: #FF2A6D;
+    --accent-glow: rgba(255, 42, 109, 0.4);
+    --text-main: #F4F4F5;
+    --text-muted: #94A3B8;
+    --card-border: rgba(255, 42, 109, 0.22);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg-main);
+    overflow-x: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-main);
+    -webkit-user-select: none; user-select: none;
+    animation: fadeInPage 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fadeInPage {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #overlay {
+    position: fixed; inset: 0; background: var(--bg-main); z-index: 9999;
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+    animation: fadeInPage 0.3s ease;
+  }
+  #overlay svg { animation: spin 0.7s linear infinite; stroke: var(--accent-pink); filter: drop-shadow(0 0 10px var(--accent-glow)); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #overlay p { color: var(--text-muted); font-size: 13px; font-weight: 600; letter-spacing: 0.5px; }
+
+  .view-pane {
+    position: fixed; inset: 0; background: var(--bg-main); z-index: 9998;
+    display: none; flex-direction: column; overflow-y: auto;
+    width: 100%; max-width: 700px; margin: 0 auto;
+    padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)) 16px;
+    scrollbar-width: thin; scrollbar-color: var(--accent-pink) var(--bg-main);
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .brand-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--card-border);
+  }
+  .brand-logo { font-size: 19px; font-weight: 900; color: #FFF; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+  .brand-logo span { color: var(--accent-pink); }
+  .brand-dot { width: 9px; height: 9px; background: var(--accent-pink); border-radius: 50%; box-shadow: 0 0 12px var(--accent-glow); animation: pulseDot 1.5s infinite; }
+  @keyframes pulseDot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: 0.5; } }
+
+  .category-tabs {
+    display: flex; gap: 8px; margin-bottom: 18px; background: rgba(255,255,255,0.04);
+    padding: 5px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);
+  }
+  .tab-btn {
+    flex: 1; padding: 11px; text-align: center; font-size: 13px; font-weight: 700;
+    color: var(--text-muted); background: transparent; border: none; border-radius: 10px;
+    cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .tab-btn.active {
+    background: var(--accent-pink); color: #FFFFFF;
+    box-shadow: 0 4px 18px var(--accent-glow); transform: translateY(-1px);
+  }
+
+  .search-wrapper { position: relative; margin-bottom: 18px; width: 100%; }
+  .search-wrapper input {
+    width: 100%; padding: 13px 16px 13px 44px; background: var(--card-bg);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; font-size: 14px;
+    color: var(--text-main); outline: none; font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  .search-wrapper input::placeholder { color: var(--text-muted); }
+  .search-wrapper input:focus { border-color: var(--accent-pink); box-shadow: 0 0 0 4px var(--accent-glow); transform: scale(1.005); }
+  .search-wrapper svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; fill: var(--text-muted); pointer-events: none; transition: fill 0.2s; }
+  .search-wrapper input:focus + svg { fill: var(--accent-pink); }
+
+  #ch-grid { display: flex; flex-direction: column; gap: 14px; }
+
+  /* Animated Match Cards */
+  .ch-card {
+    background: var(--card-bg); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px;
+    cursor: pointer; text-decoration: none; display: flex; align-items: center;
+    position: relative; overflow: hidden; -webkit-tap-highlight-color: transparent;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    animation: fadeInPage 0.35s ease forwards;
+  }
+  .ch-card:hover { border-color: var(--accent-pink); background: var(--card-hover); transform: translateY(-4px) scale(1.01); box-shadow: 0 16px 36px var(--accent-glow); }
+  .ch-card:active { transform: scale(0.985); }
+
+  .ch-thumb-wrapper { position: relative; width: 135px; flex-shrink: 0; aspect-ratio: 16/9; background: #000; }
+  .ch-thumb { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+  .ch-card:hover .ch-thumb { transform: scale(1.08); }
+  .ch-thumb-empty {
+    width: 100%; height: 100%; background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--accent-pink);
+  }
+
+  .card-badge {
+    position: absolute; top: 6px; left: 6px; z-index: 3; padding: 3px 8px; border-radius: 6px;
+    font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .card-badge.live { background: var(--accent-pink); color: #FFFFFF; box-shadow: 0 2px 8px var(--accent-glow); }
+  .card-badge.upcoming { background: #1E293B; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
+
+  .ch-body { padding: 14px 16px; width: calc(100% - 135px - 48px); display: flex; flex-direction: column; justify-content: center; gap: 5px; }
+  .ch-title { color: var(--text-main); font-size: 14px; font-weight: 700; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .ch-time { color: var(--text-muted); font-size: 11.5px; font-weight: 600; }
+
+  .share-btn {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 4; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .share-btn:hover { background: rgba(255, 42, 109, 0.3); transform: translateY(-50%) scale(1.15) rotate(10deg); box-shadow: 0 6px 16px var(--accent-glow); }
+  .share-btn svg { width: 15px; height: 15px; fill: var(--accent-pink); }
+
+  /* Detailed Waiting Screen */
+  #waiting-screen {
+    position: fixed; inset: 0; background: var(--bg-main); z-index: 10000;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; text-align: center; color: var(--text-main);
+    animation: fadeInPage 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .waiting-card {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 24px;
+    padding: 32px 24px; max-width: 420px; width: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .waiting-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 12px; }
+  .waiting-title { font-size: 17px; font-weight: 800; color: var(--text-main); line-height: 1.4; }
+  .waiting-time-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 18px; width: 100%; }
+  .waiting-time-val { font-size: 14.5px; color: var(--accent-pink); font-weight: 800; margin-top: 3px; }
+  .back-home-btn {
+    background: var(--card-bg); color: var(--text-main); border: 1px solid rgba(255,255,255,0.15); padding: 13px 20px;
+    border-radius: 12px; font-size: 13.5px; font-weight: 700; cursor: pointer; text-decoration: none; width: 100%;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .back-home-btn:hover { border-color: var(--accent-pink); background: rgba(255,42,109,0.1); transform: translateY(-2px); }
+
+  /* Player View */
+  #player-view {
+    padding: 0 !important; max-width: 100% !important; background: #000000 !important;
+  }
+  .main-content-grid { padding: 0 !important; max-width: 100% !important; height: 100% !important; justify-content: center; position: relative; }
+  .video-card { background: #000000 !important; border-radius: 0 !important; width: 100% !important; height: 100% !important; aspect-ratio: auto !important; box-shadow: none !important; border: none !important; }
+  .iframe-wrap { width: 100% !important; height: 100% !important; background: #000000 !important; }
+  .iframe-wrap video { width: 100% !important; height: 100% !important; object-fit: contain !important; background: #000000 !important; }
+
+  .player-share-overlay {
+    position: absolute; top: max(16px, env(safe-area-inset-top)); right: 20px; z-index: 999;
+    background: rgba(18, 22, 31, 0.85); border: 1px solid var(--card-border);
+    padding: 9px 16px; border-radius: 12px; color: var(--accent-pink); font-size: 12.5px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(10px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .player-share-overlay:hover { transform: scale(1.08) translateY(-2px); }
+  .player-share-overlay svg { width: 14px; height: 14px; fill: var(--accent-pink); }
+
+  /* Minimal, Highly Sensitive & Super Smooth Center Popup Modal */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    display: flex; align-items: center; justify-content: center; z-index: 10002; padding: 20px;
+    opacity: 0; visibility: hidden; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .overlay.show { opacity: 1; visibility: visible; }
+  .popup-card {
+    background: var(--card-bg); border: 1.5px solid var(--accent-pink); border-radius: 28px;
+    padding: 34px 26px; width: 100%; max-width: 360px; text-align: center;
+    box-shadow: 0 35px 70px rgba(255, 42, 109, 0.35);
+    transform: scale(0.7) translateY(30px); opacity: 0;
+    transition: transform 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .overlay.show .popup-card { transform: scale(1) translateY(0); opacity: 1; }
+  .popup-card h3 { font-size: 20px; font-weight: 900; color: var(--text-main); letter-spacing: -0.3px; }
+  .popup-card p { font-size: 13.5px; color: var(--text-muted); line-height: 1.5; font-weight: 500; }
+  
+  .popup-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; width: 100%; }
+  .popup-btn-join {
+    background: linear-gradient(135deg, var(--accent-pink), #E11D48); color: #fff; padding: 13px 20px;
+    border-radius: 12px; font-weight: 800; font-size: 14.5px; cursor: pointer; border: none;
+    box-shadow: 0 8px 25px var(--accent-glow); width: 100%; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .popup-btn-join:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 35px rgba(255,42,109,0.6); }
+  .popup-btn-join:active { transform: scale(0.97); }
+  .popup-btn-cancel {
+    background: transparent; color: var(--text-muted); border: none; padding: 8px;
+    font-weight: 600; font-size: 12.5px; cursor: pointer; width: 100%; transition: color 0.2s;
+  }
+  .popup-btn-cancel:hover { color: var(--text-main); }
+
+  #status {
+    position: fixed; top: max(14px, env(safe-area-inset-top)); right: 20px; z-index: 10003;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-main);
+    padding: 7px 14px; border-radius: 10px; font-size: 11.5px; font-weight: 700; opacity: 0; transition: opacity 0.3s;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  }
+  #status.show { opacity: 1; }
+
+  .no-results { text-align: center; padding: 48px 20px; color: var(--text-muted); font-size: 13.5px; }
+</style>
+</head>
+<body>
+
+  <div id="overlay">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke-width="2.5">
+      <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke-linecap="round"/>
+    </svg>
+    <p id="loadMsg">Loading Sportlink10…</p>
+  </div>
+
+  <div id="status"></div>
+
+  <!-- Detailed Waiting Page -->
+  <div id="waiting-screen">
+    <div class="waiting-card">
+      <img id="waitingImg" class="waiting-img" src="" alt="Poster" style="display:none;">
+      <h2 id="waitingTitle" class="waiting-title">Loading Match Details...</h2>
+      <p style="font-size: 13px; color: #94A3B8;">Yeh match jald hi shuru hone wala hai. Match live hote hi stream automatically play ho jayegi!</p>
+      <div class="waiting-time-box">
+        <div style="font-size:11.5px; color:#94A3B8; font-weight:600;">Scheduled Start Time</div>
+        <div id="waitingTimeVal" class="waiting-time-val">—</div>
+      </div>
+      <button class="back-home-btn" onclick="goHome()">Back to Match List</button>
+    </div>
+  </div>
+
+  <!-- Channel Catalog List View -->
+  <div id="channel-list" class="view-pane" style="display: flex;">
+    <div class="brand-header">
+      <div class="brand-logo"><span class="brand-dot"></span>Sportlink<span>10</span></div>
+      <span id="header-stats" style="font-size:11.5px; font-weight:700; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:5px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">0 LIVE</span>
+    </div>
+
+    <div class="category-tabs">
+      <button class="tab-btn active" id="tabLive" onclick="switchCategory('live')">Live Now</button>
+      <button class="tab-btn" id="tabUpcoming" onclick="switchCategory('upcoming')">Upcoming</button>
+    </div>
+
+    <div class="search-wrapper">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input type="text" id="channelSearch" placeholder="Search matches..." autocomplete="off" spellcheck="false">
+    </div>
+    <div id="ch-grid"></div>
+  </div>
+
+  <!-- Player Screen View -->
+  <div id="player-view" class="view-pane">
+    <div class="main-content-grid">
+      <button class="player-share-overlay" id="player-share-btn">
+        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+        Share
+      </button>
+      <div class="video-card">
+        <div class="iframe-wrap" data-shaka-player-container id="video-container">
+          <video data-shaka-player autoplay playsinline id="videoPlayer"></video>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Minimal & Clean Center Popup Modal -->
+  <div class="overlay" id="sportlink-popup">
+    <div class="popup-card">
+      <div style="width: 48px; height: 48px; background: rgba(255,42,109,0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 1px solid rgba(255,42,109,0.35);">
+        <svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: #FF2A6D;"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+      </div>
+      <div>
+        <h3>Join Sportlink10</h3>
+        <p>HD live matches aur instant backup links ke liye hamara official channel join karein.</p>
+      </div>
+      <div class="popup-actions">
+        <button class="popup-btn-join" id="popup-join-btn">Join Telegram Channel →</button>
+        <button class="popup-btn-cancel" id="popup-cancel-btn">Later</button>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/shaka-player.ui.js" crossorigin="anonymous"></script>
+  <script>
+    var currentCategory = 'live';
+    var activePlayer = null;
+
+    function switchCategory(cat) {
+      currentCategory = cat;
+      document.getElementById('tabLive').className = "tab-btn" + (cat === 'live' ? ' active' : '');
+      document.getElementById('tabUpcoming').className = "tab-btn" + (cat === 'upcoming' ? ' active' : '');
+      if (window.filterChannels) {
+        window.filterChannels(document.getElementById('channelSearch').value);
+      }
+    }
+
+    function goHome() {
+      if (activePlayer) {
+        activePlayer.destroy().catch(function(){});
+        activePlayer = null;
+      }
+      history.pushState({}, '', window.location.pathname);
+      document.getElementById('player-view').style.display = 'none';
+      document.getElementById('waiting-screen').style.display = 'none';
+      document.getElementById('channel-list').style.display = 'flex';
+      if (typeof window.renderChannels === 'function' && window._allChannels) {
+        window.renderChannels(window._allChannels);
+      }
+    }
+
+    (function(){
+      "use strict";
+
+      var API = "https://raw.githubusercontent.com/doctor-8trange/tekzya9/refs/heads/main/data/primevideoindia.json";
+
+      var $overlay = document.getElementById("overlay");
+      var $loadMsg = document.getElementById("loadMsg");
+      var $status  = document.getElementById("status");
+      var $list    = document.getElementById("channel-list");
+      var $playerView = document.getElementById("player-view");
+      var $grid    = document.getElementById("ch-grid");
+      var $vid     = document.getElementById("videoPlayer");
+      var $container = document.getElementById("video-container");
+      var $search  = document.getElementById("channelSearch");
+      var $waiting = document.getElementById("waiting-screen");
+      var $stats   = document.getElementById("header-stats");
+      var _stTmr   = null;
+      var _pollInterval = null;
+      window._allChannels = [];
+      var currentActiveMatch = null;
+
+      function triggerPopup() {
+        setTimeout(function() {
+          var popup = document.getElementById('sportlink-popup');
+          if (popup) popup.classList.add('show');
+        }, 1000);
+      }
+
+      function toast(msg, dur){
+        $status.textContent = msg;
+        $status.className = "show";
+        if(_stTmr) clearTimeout(_stTmr);
+        _stTmr = setTimeout(function(){
+          $status.className = "";
+        }, dur || 3000);
+      }
+
+      function getMatchId(m){ return m.titleId || ''; }
+      function getShortId(m){
+        var id = getMatchId(m);
+        if(!id) return '';
+        var clean = id.replace(/[^a-zA-Z0-9]/g, '');
+        return clean.length >= 4 ? clean.slice(-4) : clean;
+      }
+
+      function getMatchTitle(m){
+        return (m.title || m.eventTitle || (m.catalogMetadata && m.catalogMetadata.catalog && m.catalogMetadata.catalog.title) || 'Match');
+      }
+      function getMatchThumb(m){
+        if(m.images && m.images.boxArtImageFragments && m.images.boxArtImageFragments.mediaCentralUrl) return m.images.boxArtImageFragments.mediaCentralUrl;
+        if(m.images && m.images.coverImageFragments && m.images.coverImageFragments.mediaCentralUrl) return m.images.coverImageFragments.mediaCentralUrl;
+        if(m.catalogMetadata && m.catalogMetadata.images && m.catalogMetadata.images.coverImage) return m.catalogMetadata.images.coverImage;
+        return "";
+      }
+      function getMatchTime(m){ return (m.liveSchedule && m.liveSchedule.timeBadge) || ''; }
+      function getStreamUrl(m){
+        if(m.playback_details && Array.isArray(m.playback_details.playback_url) && m.playback_details.playback_url.length > 0){
+          return m.playback_details.playback_url[0].url || '';
+        }
+        return "";
+      }
+      function buildClearKeys(m){
+        var out = {};
+        if(m.playback_details && Array.isArray(m.playback_details.clearkey_pairs)){
+          m.playback_details.clearkey_pairs.forEach(function(entry){
+            if(typeof entry !== 'string') return;
+            var parts = entry.split(':');
+            if(parts.length >= 2 && parts[0] && parts[1]){
+              out[parts[0].trim().toLowerCase()] = parts[1].trim().toLowerCase();
+            }
+          });
+        }
+        return out;
+      }
+
+      function setMsg(m)    { if($loadMsg) $loadMsg.textContent = m; }
+      function hideOverlay(){ if($overlay) $overlay.style.display = "none"; }
+      function getChId()    { return new URLSearchParams(location.search).get("id") || ""; }
+      function isNonEmpty(v){ return typeof v === "string" && v.trim().length > 0; }
+
+      async function loadData(){
+        var r = await fetch(API, {cache:"no-store"});
+        if(!r.ok) throw new Error("HTTP " + r.status);
+        var d = await r.json();
+
+        var all = [];
+        if(Array.isArray(d.live)) d.live.forEach(function(m){ m._live = true; all.push(m); });
+        if(Array.isArray(d.upcoming)) d.upcoming.forEach(function(m){ m._live = false; all.push(m); });
+
+        all.sort(function(a,b){ return (a._live === b._live)? 0 : (a._live ? -1 : 1); });
+        
+        var liveCount = all.filter(function(m){ return m._live; }).length;
+        var upCount   = all.filter(function(m){ return !m._live; }).length;
+        if($stats) $stats.textContent = liveCount + ' LIVE · ' + upCount + ' UPCOMING';
+
+        return { channels: all };
+      }
+
+      window.renderChannels = function(channels){
+        $grid.innerHTML = "";
+        
+        var tabFiltered = channels.filter(function(m){
+          return currentCategory === 'live' ? m._live : !m._live;
+        });
+
+        if(!tabFiltered || tabFiltered.length === 0){
+          $grid.innerHTML = '<div class="no-results">No ' + currentCategory + ' matches found</div>';
+          return;
+        }
+
+        var f = document.createDocumentFragment();
+        tabFiltered.forEach(function(m){
+          var a = document.createElement("div");
+          a.className = "ch-card";
+          var shortId = getShortId(m);
+
+          var thumb = getMatchThumb(m);
+          var title = getMatchTitle(m);
+          var isLive = m._live;
+
+          var badgeHtml = isLive
+            ? '<span class="card-badge live">LIVE</span>'
+            : '<span class="card-badge upcoming">SOON</span>';
+
+          var thumbHtml = isNonEmpty(thumb)
+            ? '<div class="ch-thumb-wrapper">'+badgeHtml+'<img class="ch-thumb" src="'+thumb+'" alt="" loading="lazy" referrerpolicy="no-referrer"></div>'
+            : '<div class="ch-thumb-wrapper">'+badgeHtml+'<div class="ch-thumb-empty">⚡</div></div>';
+
+          var shareHtml = '<button class="share-btn" title="Share Match">' +
+            '<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>' +
+          '</button>';
+
+          a.innerHTML = thumbHtml + '<div class="ch-body"><div class="ch-title">' + title + '</div><div class="ch-time">' + (isLive ? 'Streaming Now' : (getMatchTime(m) ? 'Starts ' + getMatchTime(m) : 'Upcoming')) + '</div></div>' + shareHtml;
+
+          a.addEventListener('click', function(e){
+            if (e.target.closest('.share-btn')) return;
+            currentActiveMatch = m;
+            history.pushState({}, '', '?id=' + encodeURIComponent(shortId));
+            if(!m._live || !getStreamUrl(m)){
+              showWaitingScreen(m);
+            } else {
+              document.title = getMatchTitle(m);
+              startPlayer(m);
+            }
+          });
+
+          var shareBtn = a.querySelector('.share-btn');
+          shareBtn.addEventListener('click', function(e){
+            e.stopPropagation();
+            var shareUrl = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(shortId);
+            if (navigator.share) {
+              navigator.share({ title: title, url: shareUrl }).catch(function(){});
+            } else {
+              navigator.clipboard.writeText(shareUrl).then(function(){
+                toast("🔗 Link copied to clipboard!");
+              });
+            }
+          });
+
+          f.appendChild(a);
+        });
+
+        $grid.appendChild(f);
+      };
+
+      window.filterChannels = function(query){
+        var q = query ? query.trim().toLowerCase() : "";
+        var subset = window._allChannels.filter(function(m){
+          return getMatchTitle(m).toLowerCase().indexOf(q) !== -1;
+        });
+        window.renderChannels(subset);
+      };
+
+      function renderList(channels){
+        hideOverlay();
+        window._allChannels = channels;
+        window.renderChannels(channels);
+        $list.style.display = "flex";
+        triggerPopup();
+      }
+
+      function showWaitingScreen(m){
+        hideOverlay();
+        currentActiveMatch = m;
+        $list.style.display = "none";
+        $playerView.style.display = "none";
+
+        var title = getMatchTitle(m);
+        var timeBadge = getMatchTime(m) || 'Schedule info coming soon';
+        var thumb = getMatchThumb(m);
+
+        document.getElementById('waitingTitle').textContent = title;
+        document.getElementById('waitingTimeVal').textContent = timeBadge;
+        if(isNonEmpty(thumb)){
+          var img = document.getElementById('waitingImg');
+          img.src = thumb;
+          img.style.display = 'block';
+        }
+
+        $waiting.style.display = 'flex';
+        document.title = "Waiting: " + title;
+        triggerPopup();
+
+        if(!_pollInterval){
+          _pollInterval = setInterval(async function(){
+            try {
+              var freshData = await loadData();
+              var freshMatch = freshData.channels.find(function(c){
+                return getShortId(c).toLowerCase() === getShortId(m).toLowerCase();
+              });
+              if(freshMatch && freshMatch._live && getStreamUrl(freshMatch)){
+                clearInterval(_pollInterval);
+                _pollInterval = null;
+                $waiting.style.display = 'none';
+                currentActiveMatch = freshMatch;
+                document.title = getMatchTitle(freshMatch);
+                await startPlayer(freshMatch);
+              }
+            } catch(e){}
+          }, 20000);
+        }
+      }
+
+      async function startPlayer(m){
+        currentActiveMatch = m;
+        $list.style.display = "none";
+        $waiting.style.display = "none";
+        $playerView.style.display = "flex";
+
+        shaka.polyfill.installAll();
+        if(!shaka.Player.isBrowserSupported()) return;
+
+        if (activePlayer) {
+          await activePlayer.destroy();
+          activePlayer = null;
+        }
+
+        activePlayer = new shaka.Player($vid);
+        new shaka.ui.Overlay(activePlayer, $container, $vid);
+
+        activePlayer.configure({
+          streaming: { bufferingGoal: 20, rebufferingGoal: 2, bufferBehind: 30, lowLatencyMode: false, stallEnabled: true }
+        });
+
+        var url = getStreamUrl(m);
+        var drmKeys = buildClearKeys(m);
+
+        if(!url) return;
+
+        if(Object.keys(drmKeys).length > 0){
+          activePlayer.configure({ drm:{ clearKeys: drmKeys } });
+        }
+
+        activePlayer.getNetworkingEngine().registerRequestFilter(function(type, req){
+          req.headers["Referer"] = "https://www.primevideo.com/";
+          req.headers["User-Agent"] = "Mozilla/5.0 (Linux; Android 11)";
+        });
+
+        try{
+          await activePlayer.load(url);
+          hideOverlay();
+          $vid.play().catch(function(){});
+          triggerPopup();
+        }catch(e){
+          hideOverlay();
+        }
+      }
+
+      document.getElementById('player-share-btn').addEventListener('click', function(){
+        if (!currentActiveMatch) return;
+        var shortId = getShortId(currentActiveMatch);
+        var shareUrl = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(shortId);
+        if (navigator.share) {
+          navigator.share({ title: getMatchTitle(currentActiveMatch), url: shareUrl }).catch(function(){});
+        } else {
+          navigator.clipboard.writeText(shareUrl).then(function(){
+            toast("🔗 Link copied to clipboard!");
+          });
+        }
+      });
+
+      async function main(){
+        var urlId = getChId(), data;
+        try{
+          setMsg("Loading…");
+          data = await loadData();
+        }catch(_){
+          return;
+        }
+        if(!data.channels || data.channels.length === 0) return;
+
+        window._allChannels = data.channels;
+
+        if(!urlId){ 
+          renderList(window._allChannels); 
+          return; 
+        }
+
+        var m = window._allChannels.find(function(c){ 
+          return getShortId(c).toLowerCase() === urlId.toLowerCase(); 
+        });
+
+        if(!m) return;
+
+        if(!m._live || !getStreamUrl(m)){
+          showWaitingScreen(m);
+          return;
+        }
+
+        document.title = getMatchTitle(m);
+        await startPlayer(m);
+      }
+
+      document.addEventListener("DOMContentLoaded", function() {
+        if($search){
+          $search.addEventListener("input", function(e) { window.filterChannels(e.target.value); });
+        }
+
+        function closePopup() {
+          var popup = document.getElementById('sportlink-popup');
+          if (popup) popup.classList.remove('show');
+        }
+
+        function joinTelegram() {
+          window.open("https://t.me/sportlink10", "_blank");
+          closePopup();
+        }
+
+        document.getElementById('popup-join-btn').onclick = joinTelegram;
+        document.getElementById('popup-cancel-btn').onclick = closePopup;
+
+        window.addEventListener('popstate', function() {
+          var id = getChId();
+          if (!id) {
+            goHome();
+          } else {
+            var m = window._allChannels.find(function(c){ return getShortId(c).toLowerCase() === id.toLowerCase(); });
+            if (m) {
+              if (!m._live || !getStreamUrl(m)) showWaitingScreen(m);
+              else startPlayer(m);
+            }
+          }
+        });
+
+        main();
+      });
+    })();
+  </script>
+</body>
+</html>
