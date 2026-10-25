@@ -7,18 +7,24 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>CricXCrate · Live Streaming</title>
+<title>CricXCrate · Olive Elite</title>
 
 <link rel="preconnect" href="https://raw.githubusercontent.com">
 <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/controls.css" crossorigin="anonymous">
 <style>
   :root {
     --bg-main: #FBF2DA;
+    --card-bg: #FFFFFF;
+    --card-hover: #F7F4EB;
     --accent-olive: #6A7357;
+    --accent-glow: rgba(106, 115, 87, 0.4);
     --text-main: #1A1A1A;
     --text-muted: #555555;
-    --white: #FFFFFF;
+    --card-border: rgba(106, 115, 87, 0.25);
     --tg-blue: #0088CC;
   }
 
@@ -28,7 +34,7 @@
     width: 100%; height: 100%;
     background: var(--bg-main);
     overflow-x: hidden;
-    font-family: 'Segoe UI', 'Inter', system-ui, Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--text-main);
     -webkit-user-select: none; user-select: none;
     animation: fadeInPage 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -84,6 +90,7 @@
   .tab-btn.active {
     background: var(--accent-olive); color: #FFFFFF;
     box-shadow: 0 4px 15px rgba(106, 115, 87, 0.3); transform: translateY(-1px);
+    font-weight: 800;
   }
 
   .search-wrapper { position: relative; margin-bottom: 18px; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; }
@@ -169,46 +176,65 @@
 
   .player-share-overlay {
     position: absolute; top: max(16px, env(safe-area-inset-top)); right: 20px; z-index: 999;
-    background: rgba(18, 22, 31, 0.85); border: 1px solid rgba(106, 115, 87, 0.4);
+    background: rgba(19, 26, 24, 0.85); border: 1px solid rgba(106, 115, 87, 0.4);
     padding: 8px 14px; border-radius: 10px; color: var(--accent-olive); font-size: 12px; font-weight: 700;
     cursor: pointer; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px);
   }
   .player-share-overlay svg { width: 14px; height: 14px; fill: var(--accent-olive); }
 
-  /* Popup Modal */
+  /* Ultra-Premium Glassmorphism & Animated Popup Modal */
   .overlay-popup {
-    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    position: fixed; inset: 0; background: rgba(26, 26, 26, 0.6);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
     display: flex; align-items: center; justify-content: center; z-index: 10002; padding: 20px;
-    opacity: 0; visibility: hidden; transition: all 0.35s ease;
+    opacity: 0; visibility: hidden; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .overlay-popup.show { opacity: 1; visibility: visible; }
-  .popup-card {
-    background: var(--white); border: 1.5px solid var(--accent-olive); border-radius: 26px;
-    padding: 34px 24px; width: 100%; max-width: 360px; text-align: center;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.2); transform: scale(0.8) translateY(20px);
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    display: flex; flex-direction: column; gap: 16px;
-  }
-  .overlay-popup.show .popup-card { transform: scale(1) translateY(0); }
-  .popup-card h3 { font-size: 20px; font-weight: 800; color: var(--text-main); }
-  .popup-card p { font-size: 13.5px; color: var(--text-muted); line-height: 1.5; }
   
-  .popup-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; width: 100%; }
+  .popup-card {
+    background: rgba(255, 255, 255, 0.95); border: 2px solid var(--card-border); border-radius: 32px;
+    padding: 38px 28px; width: 100%; max-width: 380px; text-align: center;
+    box-shadow: 0 40px 90px rgba(106, 115, 87, 0.25), 0 10px 30px rgba(0,0,0,0.08);
+    transform: scale(0.6) translateY(50px) rotate(-3deg); opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+    display: flex; flex-direction: column; gap: 20px; position: relative; overflow: hidden;
+  }
+  .overlay-popup.show .popup-card { transform: scale(1) translateY(0) rotate(0deg); opacity: 1; }
+  
+  .popup-icon-wrap {
+    width: 64px; height: 64px; background: rgba(106, 115, 87, 0.12); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto;
+    border: 1.5px solid rgba(106, 115, 87, 0.35);
+    box-shadow: 0 0 25px rgba(106, 115, 87, 0.2);
+    animation: pulseIcon 2s infinite ease-in-out;
+  }
+  @keyframes pulseIcon {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(106, 115, 87, 0.4); }
+    50% { transform: scale(1.12); box-shadow: 0 0 0 12px rgba(106, 115, 87, 0); }
+  }
+
+  .popup-card h3 { font-size: 22px; font-weight: 900; color: var(--text-main); letter-spacing: -0.4px; }
+  .popup-card p { font-size: 14px; color: var(--text-muted); line-height: 1.55; font-weight: 500; }
+  
+  .popup-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; width: 100%; }
+  
   .popup-btn-join {
     flex: 0 0 88%;
-    background: var(--accent-olive); color: #fff; padding: 13px 18px;
-    border-radius: 12px; font-weight: 800; font-size: 14.5px; cursor: pointer; border: none;
-    box-shadow: 0 6px 20px rgba(106, 115, 87, 0.35); transition: transform 0.15s;
+    background: var(--accent-olive); color: #FFFFFF; padding: 15px 20px;
+    border-radius: 16px; font-weight: 900; font-size: 15px; cursor: pointer; border: none;
+    box-shadow: 0 10px 28px rgba(106, 115, 87, 0.35);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
+  .popup-btn-join:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 14px 38px rgba(106, 115, 87, 0.5); background: #555D44; }
   .popup-btn-join:active { transform: scale(0.97); }
+
   .popup-btn-cancel {
     flex: 0 0 10%;
-    background: transparent; color: var(--text-muted); border: 1px solid rgba(106, 115, 87, 0.2);
-    padding: 12px 0; font-weight: 700; font-size: 12px; cursor: pointer; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
+    background: #F3F4F6; color: var(--text-muted); border: 1px solid rgba(106, 115, 87, 0.15);
+    padding: 14px 0; font-weight: 800; font-size: 13px; cursor: pointer; border-radius: 16px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; justify-content: center;
   }
-  .popup-btn-cancel:hover { background: rgba(0,0,0,0.03); color: var(--text-main); }
+  .popup-btn-cancel:hover { background: #E5E7EB; color: var(--text-main); transform: scale(1.05); }
 
   #status {
     position: fixed; top: max(14px, env(safe-area-inset-top)); right: 20px; z-index: 10003;
@@ -230,7 +256,7 @@
 
   <div id="status"></div>
 
-  <!-- Animated Waiting Page -->
+  <!-- Detailed Waiting Page -->
   <div id="waiting-screen">
     <div class="waiting-card">
       <img id="waitingImg" class="waiting-img" src="" alt="Poster" style="display:none;">
@@ -248,7 +274,7 @@
   <div id="channel-list" class="view-pane" style="display: flex;">
     <div class="brand-header">
       <div class="brand-logo"><span class="brand-dot"></span>CricX<span>Crate</span></div>
-      <span id="header-stats" style="font-size:11px; font-weight:700; color:var(--text-muted); background:rgba(106,115,87,0.1); padding:4px 10px; border-radius:8px;">0 LIVE</span>
+      <span id="header-stats" style="font-size:11px; font-weight:700; color:var(--text-muted); background:rgba(0,136,204,0.1); padding:4px 10px; border-radius:8px;">0 LIVE</span>
     </div>
 
     <div class="category-tabs">
@@ -278,7 +304,7 @@
     </div>
   </div>
 
-  <!-- CricXCrate Animated Popup Modal -->
+  <!-- CricXCrate Ultra-Premium Circle-Expand Animated Popup Modal -->
   <div class="overlay-popup" id="sportlink-popup">
     <div class="popup-card">
       <div class="popup-icon-wrap">
@@ -316,7 +342,6 @@
       history.pushState({}, '', window.location.pathname);
       document.getElementById('player-view').style.display = 'none';
       document.getElementById('waiting-screen').style.display = 'none';
-      document.getElementById('waiting-screen').classList.remove('show');
       document.getElementById('channel-list').style.display = 'flex';
       if (typeof window.renderChannels === 'function' && window._allChannels) {
         window.renderChannels(window._allChannels);
@@ -523,10 +548,6 @@
         }
 
         $waiting.style.display = 'flex';
-        setTimeout(function(){
-          $waiting.classList.add('show');
-        }, 10);
-
         document.title = "Waiting: " + title;
         triggerPopup();
 
@@ -540,7 +561,6 @@
               if(freshMatch && freshMatch._live && getStreamUrl(freshMatch)){
                 clearInterval(_pollInterval);
                 _pollInterval = null;
-                $waiting.classList.remove('show');
                 $waiting.style.display = 'none';
                 currentActiveMatch = freshMatch;
                 document.title = getMatchTitle(freshMatch);
@@ -555,7 +575,6 @@
         currentActiveMatch = m;
         $list.style.display = "none";
         $waiting.style.display = "none";
-        $waiting.classList.remove('show');
         $playerView.style.display = "flex";
 
         shaka.polyfill.installAll();
