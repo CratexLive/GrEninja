@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>CricXCrate · Elite Streaming</title>
+<title>CricXCrate · Prime Video</title>
 
 <link rel="preconnect" href="https://raw.githubusercontent.com">
 <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
@@ -186,6 +186,20 @@
   .player-share-overlay:hover { transform: scale(1.08) translateY(-2px); }
   .player-share-overlay svg { width: 15px; height: 15px; fill: var(--accent-pink); }
 
+  #status {
+    position: fixed; top: max(16px, env(safe-area-inset-top)); left: 20px; z-index: 10003;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-main);
+    padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; opacity: 0; transition: opacity 0.3s;
+    box-shadow: 0 6px 20px rgba(255, 101, 132, 0.12);
+    display: flex; align-items: center; gap: 8px;
+  }
+  #status.show { opacity: 1; }
+  .st-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  #status.ok .st-dot { background: var(--accent-pink); }
+  #status.live .st-dot { background: #22d3a0; animation: pulseDot 1.5s infinite; }
+  #status.warn .st-dot { background: #f5a623; }
+  #status.err .st-dot { background: #ff3b5c; }
+
   .overlay {
     position: fixed; inset: 0; background: rgba(45, 55, 72, 0.65);
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -217,32 +231,39 @@
   .popup-card h3 { font-size: 21px; font-weight: 900; color: var(--text-main); letter-spacing: -0.3px; }
   .popup-card p { font-size: 13.5px; color: var(--text-muted); line-height: 1.5; font-weight: 500; }
 
-  .popup-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; width: 100%; }
-
-  .popup-btn-join {
+  /* Popup 1: Cancel on Right */
+  .popup-actions-1 { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; width: 100%; }
+  .popup-btn-join-1 {
     flex: 0 0 88%;
     background: var(--accent-pink); color: #fff; padding: 14px 18px;
     border-radius: 14px; font-weight: 800; font-size: 14.5px; cursor: pointer; border: none;
     box-shadow: 0 8px 25px var(--accent-glow); transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .popup-btn-join:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 35px var(--accent-glow); }
-  .popup-btn-join:active { transform: scale(0.97); }
-
-  .popup-btn-cancel {
+  .popup-btn-join-1:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 35px var(--accent-glow); }
+  .popup-btn-cancel-1 {
     flex: 0 0 10%;
     background: transparent; color: var(--text-muted); border: 1px solid rgba(113, 128, 150, 0.2);
     padding: 13px 0; font-weight: 700; font-size: 13px; cursor: pointer; border-radius: 14px;
     transition: all 0.2s; display: flex; align-items: center; justify-content: center;
   }
-  .popup-btn-cancel:hover { color: var(--text-main); border-color: var(--text-muted); background: rgba(0,0,0,0.03); }
+  .popup-btn-cancel-1:hover { color: var(--text-main); border-color: var(--text-muted); background: rgba(0,0,0,0.03); }
 
-  #status {
-    position: fixed; top: max(16px, env(safe-area-inset-top)); right: 20px; z-index: 10003;
-    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-main);
-    padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; opacity: 0; transition: opacity 0.3s;
-    box-shadow: 0 6px 20px rgba(255, 101, 132, 0.12);
+  /* Popup 2: Cancel on Left */
+  .popup-actions-2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; width: 100%; }
+  .popup-btn-cancel-2 {
+    flex: 0 0 10%;
+    background: transparent; color: var(--text-muted); border: 1px solid rgba(113, 128, 150, 0.2);
+    padding: 13px 0; font-weight: 700; font-size: 13px; cursor: pointer; border-radius: 14px;
+    transition: all 0.2s; display: flex; align-items: center; justify-content: center;
   }
-  #status.show { opacity: 1; }
+  .popup-btn-cancel-2:hover { color: var(--text-main); border-color: var(--text-muted); background: rgba(0,0,0,0.03); }
+  .popup-btn-join-2 {
+    flex: 0 0 88%;
+    background: var(--accent-pink); color: #fff; padding: 14px 18px;
+    border-radius: 14px; font-weight: 800; font-size: 14.5px; cursor: pointer; border: none;
+    box-shadow: 0 8px 25px var(--accent-glow); transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .popup-btn-join-2:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 35px var(--accent-glow); }
 
   .no-results { text-align: center; padding: 50px 20px; color: var(--text-muted); font-size: 14px; font-weight: 600; }
 </style>
@@ -253,11 +274,10 @@
     <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke-width="2.5">
       <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke-linecap="round"/>
     </svg>
-    <p id="loadMsg">Loading CricXCrate…</p>
+    <p id="loadMsg">Loading CricXCrate X Prime …</p>
   </div>
 
   <div id="status"></div>
-
   <!-- Waiting Page -->
   <div id="waiting-screen">
     <div class="waiting-card">
@@ -275,7 +295,7 @@
   <!-- Channel Catalog List View -->
   <div id="channel-list" class="view-pane" style="display: flex;">
     <div class="brand-header">
-      <div class="brand-logo"><span class="brand-dot"></span>CricX<span>Crate</span></div>
+      <div class="brand-logo"><span class="brand-dot"></span>CricXCrate <span>Prime Video</span></div>
       <span id="header-stats" style="font-size:12px; font-weight:700; color:var(--text-muted); background:rgba(255, 101, 132, 0.06); padding:6px 14px; border-radius:12px; border:1px solid var(--card-border);">0 LIVE</span>
     </div>
 
@@ -306,23 +326,40 @@
     </div>
   </div>
 
-  <!-- Popup Modal -->
-  <div class="overlay" id="sportlink-popup">
+  <!-- Popup Modal 1 (Cancel on Right) -->
+  <div class="overlay" id="sportlink-popup-1">
     <div class="popup-card">
       <div class="popup-icon-wrap">
         <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: var(--accent-pink);"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
       </div>
       <div>
-        <h3>Join CricXCrate</h3>
+        <h3>CricXCrate Prime Video</h3>
         <p>Join our official channel for HD live matches and instant backup links.</p>
       </div>
-      <div class="popup-actions">
-        <button class="popup-btn-join" id="popup-join-btn">Join Telegram Channel →</button>
-        <button class="popup-btn-cancel" id="popup-cancel-btn">✕</button>
+      <div class="popup-actions-1">
+        <button class="popup-btn-join-1" id="popup-join-btn-1">Join Telegram Channel →</button>
+        <button class="popup-btn-cancel-1" id="popup-cancel-btn-1">✕</button>
       </div>
     </div>
   </div>
-<script src="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/shaka-player.ui.js" crossorigin="anonymous"></script>
+
+  <!-- Popup Modal 2 (Cancel on Left) -->
+  <div class="overlay" id="sportlink-popup-2">
+    <div class="popup-card">
+      <div class="popup-icon-wrap">
+        <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: var(--accent-pink);"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+      </div>
+      <div>
+        <h3>Don't Miss Out!</h3>
+        <p>Get exclusive match notifications and direct backup streams on Telegram.</p>
+      </div>
+      <div class="popup-actions-2">
+        <button class="popup-btn-cancel-2" id="popup-cancel-btn-2">✕</button>
+        <button class="popup-btn-join-2" id="popup-join-btn-2">Join Now →</button>
+      </div>
+    </div>
+  </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/5.2.0/shaka-player.ui.min.js"></script>
 <script>
   var currentCategory = 'live';
   var activePlayer = null;
@@ -354,6 +391,7 @@
     "use strict";
 
     var API = "https://raw.githubusercontent.com/doctor-8trange/tekzya9/refs/heads/main/data/primevideoindia.json";
+    var TG_LINK = "https://t.me/+eS4NlDDbBE9hODk1";
 
     var $overlay = document.getElementById("overlay");
     var $loadMsg = document.getElementById("loadMsg");
@@ -373,18 +411,18 @@
 
     function triggerPopup() {
       setTimeout(function() {
-        var popup = document.getElementById('sportlink-popup');
-        if (popup) popup.classList.add('show');
+        var popup1 = document.getElementById('sportlink-popup-1');
+        if (popup1) popup1.classList.add('show');
       }, 1000);
     }
 
-    function toast(msg, dur){
-      $status.textContent = msg;
-      $status.className = "show";
+    function toast(msg, type, dur){
+      $status.innerHTML = '<span class="st-dot"></span><span>' + msg + '</span>';
+      $status.className = "show " + (type || "ok");
       if(_stTmr) clearTimeout(_stTmr);
       _stTmr = setTimeout(function(){
         $status.className = "";
-      }, dur || 3000);
+      }, dur || 4000);
     }
 
     function getMatchId(m){ return m.titleId || ''; }
@@ -430,6 +468,64 @@
     function getChId()    { return new URLSearchParams(location.search).get("id") || ""; }
     function isNonEmpty(v){ return typeof v === "string" && v.trim().length > 0; }
 
+    function langNameToCode(name) {
+      if (!name) return 'en';
+      var n = name.toLowerCase().trim();
+      if (n.includes('hindi') || n === 'hi') return 'hi';
+      if (n.includes('telugu') || n === 'te') return 'te';
+      if (n.includes('marathi') || n === 'mr') return 'mr';
+      if (n.includes('tamil') || n === 'ta') return 'ta';
+      if (n.includes('kannada') || n === 'kn') return 'kn';
+      if (n.includes('bengali') || n === 'bn') return 'bn';
+      if (n.includes('malayalam') || n === 'ml') return 'ml';
+      if (n.includes('spanish') || n === 'es') return 'es';
+      return 'en';
+    }
+
+    function getMatchLanguageCode(m) {
+      var urlParams = new URLSearchParams(location.search);
+      var urlLang = urlParams.get('lang');
+      if (urlLang) return urlLang.toLowerCase().trim();
+
+      if (m && m.catalogMetadata && m.catalogMetadata.catalog) {
+        var cat = m.catalogMetadata.catalog;
+        if (Array.isArray(cat.originalLanguages) && cat.originalLanguages.length > 0) {
+          return langNameToCode(cat.originalLanguages[0]);
+        }
+        if (Array.isArray(cat.primarySpokenLanguages) && cat.primarySpokenLanguages.length > 0) {
+          return langNameToCode(cat.primarySpokenLanguages[0]);
+        }
+      }
+
+      var browserLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+      return browserLang.split('-')[0];
+    }
+
+    function getShareText(m) {
+      var title = getMatchTitle(m);
+      var shortId = getShortId(m);
+      var langCode = getMatchLanguageCode(m);
+      
+      var shareUrl = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(shortId) + '&lang=' + encodeURIComponent(langCode);
+      var text = "Watch " + title + " LIVE in HD on CricXCrate Prime Video!";
+      
+      if (langCode === 'hi') {
+        text = "CricXCrate Prime Video पर " + title + " एचडी लाइव देखें!";
+      } else if (langCode === 'te') {
+        text = "CricXCrate Prime Video లో " + title + " లైవ్ HD లో చూడండి!";
+      } else if (langCode === 'mr') {
+        text = "CricXCrate Prime Video वर " + title + " लाईव्ह एचडी मध्ये पहा!";
+      } else if (langCode === 'ta') {
+        text = "CricXCrate Prime Video-ல் " + title + " நேரலை HD-யில் காண்க!";
+      } else if (langCode === 'kn') {
+        text = "CricXCrate Prime Video ನಲ್ಲಿ " + title + " ನೇರ HD ವೀಕ್ಷಿಸಿ!";
+      } else if (langCode === 'es') {
+        text = "¡Mira " + title + " EN VIVO en HD en CricXCrate Prime Video!";
+      }
+      
+      return { title: title, text: text, url: shareUrl };
+    }
+
     async function loadData(){
       var r = await fetch(API, {cache:"no-store"});
       if(!r.ok) throw new Error("HTTP " + r.status);
@@ -447,7 +543,6 @@
 
       return { channels: all };
     }
-
     window.renderChannels = function(channels){
       $grid.innerHTML = "";
 
@@ -487,7 +582,8 @@
         a.addEventListener('click', function(e){
           if (e.target.closest('.share-btn')) return;
           currentActiveMatch = m;
-          history.pushState({}, '', '?id=' + encodeURIComponent(shortId));
+          var langCode = getMatchLanguageCode(m);
+          history.pushState({}, '', '?id=' + encodeURIComponent(shortId) + '&lang=' + encodeURIComponent(langCode));
           if(!m._live || !getStreamUrl(m)){
             showWaitingScreen(m);
           } else {
@@ -499,12 +595,12 @@
         var shareBtn = a.querySelector('.share-btn');
         shareBtn.addEventListener('click', function(e){
           e.stopPropagation();
-          var shareUrl = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(shortId);
+          var shareData = getShareText(m);
           if (navigator.share) {
-            navigator.share({ title: title, url: shareUrl }).catch(function(){});
+            navigator.share({ title: shareData.title, text: shareData.text, url: shareData.url }).catch(function(){});
           } else {
-            navigator.clipboard.writeText(shareUrl).then(function(){
-              toast("🔗 Link copied to clipboard!");
+            navigator.clipboard.writeText(shareData.url).then(function(){
+              toast("🔗 Link copied to clipboard!", "ok", 3000);
             });
           }
         });
@@ -573,6 +669,14 @@
       }
     }
 
+    function shakaErrStr(e){
+      if(!e) return "Playback Error";
+      var cat = {1:"Network", 2:"Text", 3:"Media", 4:"Manifest", 5:"Stream", 6:"DRM", 7:"Player"};
+      var s = (cat[e.category] || "Error") + " " + e.category + ":" + e.code;
+      if(e.data && e.data[0] && typeof e.data[0] === "string") s += " — " + e.data[0].slice(0, 72);
+      return s;
+    }
+
     async function startPlayer(m){
       currentActiveMatch = m;
       $list.style.display = "none";
@@ -580,7 +684,10 @@
       $playerView.style.display = "flex";
 
       shaka.polyfill.installAll();
-      if(!shaka.Player.isBrowserSupported()) return;
+      if(!shaka.Player.isBrowserSupported()){
+        toast("Browser Not Supported.", "err", 0);
+        return;
+      }
 
       if (activePlayer) {
         await activePlayer.destroy();
@@ -590,59 +697,170 @@
       activePlayer = new shaka.Player($vid);
       new shaka.ui.Overlay(activePlayer, $container, $vid);
 
-      // Ultra-fast instant loading & bufferless tuning configurations
-      activePlayer.configure({
-        streaming: {
-          bufferingGoal: 4,
-          rebufferingGoal: 1,
-          bufferBehind: 8,
-          lowLatencyMode: true,
-          stallEnabled: true,
-          stallThreshold: 0.5,
-          inaccurateManifestTolerance: 0
-        },
-        manifest: {
-          retryParameters: { maxAttempts: 3, baseDelay: 200, backoffFactor: 1.5 }
-        },
-        abr: {
-          enabled: true,
-          defaultBandwidthEstimate: 3000000
-        }
-      });
-
       var url = getStreamUrl(m);
       var drmKeys = buildClearKeys(m);
 
       if(!url) return;
 
-      if(Object.keys(drmKeys).length > 0){
-        activePlayer.configure({ drm:{ clearKeys: drmKeys } });
+      function getTier(){
+        var mem = navigator.deviceMemory || 4, cores = navigator.hardwareConcurrency || 4;
+        var mob = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if(!mob) return "high";
+        if(mem <= 1.5 || cores <= 2) return "low";
+        if(mem <= 3 || cores <= 4) return "mid";
+        return "high";
       }
+
+      var TIER = getTier();
+      var PROF = {
+        low:  { buf: 4, reBuf: 1.5, behind: 10, maxH: 480, maxBw: 1000000, bwEst: 400000 },
+        mid:  { buf: 7, reBuf: 1.5, behind: 20, maxH: 720, maxBw: 3000000, bwEst: 1000000 },
+        high: { buf: 10, reBuf: 1.5, behind: 25, maxH: 1080, maxBw: 0, bwEst: 2000000 }
+      }[TIER];
+
+      function buildCfg(){
+        return {
+          drm: { clearKeys: drmKeys },
+          manifest: {
+            defaultPresentationDelay: 4,
+            ignoreTextStreamFailures: true,
+            retryParameters: { maxAttempts: 5, baseDelay: 500, backoffFactor: 2, fuzzFactor: 0.5, timeout: 30000 }
+          },
+          streaming: {
+            lowLatencyMode: false,
+            bufferingGoal: PROF.buf,
+            rebufferingGoal: PROF.reBuf,
+            bufferBehind: PROF.behind,
+            safeSeekOffset: 4,
+            stallEnabled: true,
+            stallThreshold: 1,
+            stallSkip: 0.3,
+            inaccurateManifestTolerance: 0,
+            retryParameters: { maxAttempts: 5, baseDelay: 500, backoffFactor: 2, fuzzFactor: 0.5, timeout: 30000 }
+          },
+          abr: {
+            enabled: true,
+            defaultBandwidthEstimate: PROF.bwEst,
+            switchInterval: 4,
+            restrictions: { maxHeight: PROF.maxH }
+          }
+        };
+      }
+
+      activePlayer.configure(buildCfg());
 
       activePlayer.getNetworkingEngine().registerRequestFilter(function(type, req){
         req.headers["Referer"] = "https://www.primevideo.com/";
-        req.headers["User-Agent"] = "Mozilla/5.0 (Linux; Android 11)";
+        req.headers["User-Agent"] = "Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36";
       });
 
-      try{
+      var refreshing = false, retries = 0, edgeTried = false, lastTry = 0, started = false, stallTmr = null;
+
+      function goLiveEdge(){
+        if(refreshing) return;
+        try {
+          activePlayer.goToLive();
+          edgeTried = true;
+          toast("Syncing to live edge…", "warn", 2000);
+        } catch(_) {
+          reload();
+        }
+      }
+
+      async function reload(){
+        var now = Date.now();
+        if(refreshing || now - lastTry < 1500) return;
+        if(retries >= 5){
+          toast("Stream unavailable. Please try again later.", "err", 0);
+          return;
+        }
+        refreshing = true;
+        lastTry = now;
+        retries++;
+        toast("Reconnecting… (" + retries + " / 5)", "warn", 0);
+        try {
+          var d = await loadData();
+          var fresh = d.channels.find(function(c){ return getShortId(c).toLowerCase() === getShortId(m).toLowerCase(); });
+          if(!fresh) throw new Error("missing");
+          var fk = buildClearKeys(fresh), fu = getStreamUrl(fresh);
+          if(!Object.keys(fk).length) throw new Error("no_keys");
+          if(!fu) throw new Error("no_url");
+          drmKeys = fk; url = fu; m = fresh;
+          activePlayer.configure(buildCfg());
+          await activePlayer.load(url);
+          $vid.play().catch(function(){});
+          retries = 0;
+          edgeTried = false;
+          toast("Live", "live", 4000);
+        } catch(_) {
+          setTimeout(reload, Math.min(1000 * Math.pow(2, retries - 1), 8000));
+        } finally {
+          refreshing = false;
+        }
+      }
+
+      var RECOVERABLE = [1001, 1002, 1003, 4012, 6006, 6007, 7000, 7001, 7002];
+      activePlayer.addEventListener("error", function(ev){
+        var err = ev.detail, code = err && err.code;
+        if(RECOVERABLE.indexOf(code) !== -1){
+          toast("Buffering…", "warn", 0);
+          setTimeout(function(){ if(!refreshing) reload(); }, 700);
+        } else {
+          toast(shakaErrStr(err), "err", 6000);
+        }
+      });
+
+      function onStall(){
+        if(stallTmr) return;
+        toast("Buffering…", "warn", 0);
+        if(!started || refreshing) return;
+        stallTmr = setTimeout(function(){
+          stallTmr = null;
+          if(!edgeTried) goLiveEdge();
+          else reload();
+        }, 5000);
+      }
+
+      function onPlaying(){
+        started = true;
+        if(stallTmr){ clearTimeout(stallTmr); stallTmr = null; }
+        edgeTried = false;
+        if(!refreshing) toast("Live", "live", 3000);
+      }
+
+      $vid.addEventListener("waiting", onStall);
+      $vid.addEventListener("stalled", onStall);
+      $vid.addEventListener("playing", onPlaying);
+      $vid.addEventListener("error", function(){
+        if(!refreshing){
+          toast("Buffering…", "warn", 0);
+          setTimeout(function(){ if(!refreshing) reload(); }, 700);
+        }
+      });
+
+      try {
+        setMsg("Loading stream…");
+        toast("Loading stream…", "warn", 0);
         await activePlayer.load(url);
         hideOverlay();
+        toast("Ready — playing", "live", 3000);
         $vid.play().catch(function(){});
         triggerPopup();
-      }catch(e){
+      } catch(_) {
         hideOverlay();
+        toast("Connection error — retrying…", "err", 0);
+        setTimeout(reload, 1500);
       }
     }
 
     document.getElementById('player-share-btn').addEventListener('click', function(){
       if (!currentActiveMatch) return;
-      var shortId = getShortId(currentActiveMatch);
-      var shareUrl = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(shortId);
+      var shareData = getShareText(currentActiveMatch);
       if (navigator.share) {
-        navigator.share({ title: getMatchTitle(currentActiveMatch), url: shareUrl }).catch(function(){});
+        navigator.share({ title: shareData.title, text: shareData.text, url: shareData.url }).catch(function(){});
       } else {
-        navigator.clipboard.writeText(shareUrl).then(function(){
-          toast("🔗 Link copied to clipboard!");
+        navigator.clipboard.writeText(shareData.url).then(function(){
+          toast("🔗 Link copied to clipboard!", "ok", 3000);
         });
       }
     });
@@ -684,18 +902,36 @@
         $search.addEventListener("input", function(e) { window.filterChannels(e.target.value); });
       }
 
-      function closePopup() {
-        var popup = document.getElementById('sportlink-popup');
-        if (popup) popup.classList.remove('show');
+      function closePopup1() {
+        var p1 = document.getElementById('sportlink-popup-1');
+        if (p1) p1.classList.remove('show');
+        
+        var hasVisitedBefore = localStorage.getItem('cricx_visited_before');
+        if (!hasVisitedBefore) {
+          localStorage.setItem('cricx_visited_before', 'true');
+          setTimeout(function(){
+            var p2 = document.getElementById('sportlink-popup-2');
+            if (p2) p2.classList.add('show');
+          }, 300);
+        }
+      }
+
+      function closePopup2() {
+        var p2 = document.getElementById('sportlink-popup-2');
+        if (p2) p2.classList.remove('show');
       }
 
       function joinTelegram() {
-        window.open("https://t.me/sportlink10", "_blank");
-        closePopup();
+        window.open(TG_LINK, "_blank");
+        closePopup1();
+        closePopup2();
       }
 
-      document.getElementById('popup-join-btn').onclick = joinTelegram;
-      document.getElementById('popup-cancel-btn').onclick = closePopup;
+      document.getElementById('popup-join-btn-1').onclick = joinTelegram;
+      document.getElementById('popup-cancel-btn-1').onclick = closePopup1;
+
+      document.getElementById('popup-join-btn-2').onclick = joinTelegram;
+      document.getElementById('popup-cancel-btn-2').onclick = closePopup2;
 
       window.addEventListener('popstate', function() {
         var id = getChId();
