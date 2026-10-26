@@ -274,7 +274,7 @@
     <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke-width="2.5">
       <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke-linecap="round"/>
     </svg>
-    <p id="loadMsg">Loading CricXCrate X Prime …</p>
+    <p id="loadMsg">Loading CricXCrate Prime Video...</p>
   </div>
 
   <div id="status"></div>
@@ -295,7 +295,7 @@
   <!-- Channel Catalog List View -->
   <div id="channel-list" class="view-pane" style="display: flex;">
     <div class="brand-header">
-      <div class="brand-logo"><span class="brand-dot"></span>CricXCrate <span>Prime Video</span></div>
+      <div class="brand-logo"><span class="brand-dot"></span>CricX<span>Crate</span> <span style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin-left: 4px;">Prime Video</span></div>
       <span id="header-stats" style="font-size:12px; font-weight:700; color:var(--text-muted); background:rgba(255, 101, 132, 0.06); padding:6px 14px; border-radius:12px; border:1px solid var(--card-border);">0 LIVE</span>
     </div>
 
@@ -501,29 +501,10 @@
       return browserLang.split('-')[0];
     }
 
-    function getShareText(m) {
-      var title = getMatchTitle(m);
+    function getShareUrl(m) {
       var shortId = getShortId(m);
       var langCode = getMatchLanguageCode(m);
-      
-      var shareUrl = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(shortId) + '&lang=' + encodeURIComponent(langCode);
-      var text = "Watch " + title + " LIVE in HD on CricXCrate Prime Video!";
-      
-      if (langCode === 'hi') {
-        text = "CricXCrate Prime Video पर " + title + " एचडी लाइव देखें!";
-      } else if (langCode === 'te') {
-        text = "CricXCrate Prime Video లో " + title + " లైవ్ HD లో చూడండి!";
-      } else if (langCode === 'mr') {
-        text = "CricXCrate Prime Video वर " + title + " लाईव्ह एचडी मध्ये पहा!";
-      } else if (langCode === 'ta') {
-        text = "CricXCrate Prime Video-ல் " + title + " நேரலை HD-யில் காண்க!";
-      } else if (langCode === 'kn') {
-        text = "CricXCrate Prime Video ನಲ್ಲಿ " + title + " ನೇರ HD ವೀಕ್ಷಿಸಿ!";
-      } else if (langCode === 'es') {
-        text = "¡Mira " + title + " EN VIVO en HD en CricXCrate Prime Video!";
-      }
-      
-      return { title: title, text: text, url: shareUrl };
+      return window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(shortId) + '&lang=' + encodeURIComponent(langCode);
     }
 
     async function loadData(){
@@ -595,12 +576,12 @@
         var shareBtn = a.querySelector('.share-btn');
         shareBtn.addEventListener('click', function(e){
           e.stopPropagation();
-          var shareData = getShareText(m);
+          var shareUrl = getShareUrl(m);
           if (navigator.share) {
-            navigator.share({ title: shareData.title, text: shareData.text, url: shareData.url }).catch(function(){});
+            navigator.share({ title: getMatchTitle(m), url: shareUrl }).catch(function(){});
           } else {
-            navigator.clipboard.writeText(shareData.url).then(function(){
-              toast("🔗 Link copied to clipboard!", "ok", 3000);
+            navigator.clipboard.writeText(shareUrl).then(function(){
+              toast("Link copied to clipboard", "ok", 3000);
             });
           }
         });
@@ -685,7 +666,7 @@
 
       shaka.polyfill.installAll();
       if(!shaka.Player.isBrowserSupported()){
-        toast("Browser Not Supported.", "err", 0);
+        toast("Browser Not Supported", "err", 0);
         return;
       }
 
@@ -761,7 +742,7 @@
         try {
           activePlayer.goToLive();
           edgeTried = true;
-          toast("Syncing to live edge…", "warn", 2000);
+          toast("Syncing to live edge", "warn", 2000);
         } catch(_) {
           reload();
         }
@@ -777,7 +758,7 @@
         refreshing = true;
         lastTry = now;
         retries++;
-        toast("Reconnecting… (" + retries + " / 5)", "warn", 0);
+        toast("Reconnecting (" + retries + " / 5)", "warn", 0);
         try {
           var d = await loadData();
           var fresh = d.channels.find(function(c){ return getShortId(c).toLowerCase() === getShortId(m).toLowerCase(); });
@@ -803,7 +784,7 @@
       activePlayer.addEventListener("error", function(ev){
         var err = ev.detail, code = err && err.code;
         if(RECOVERABLE.indexOf(code) !== -1){
-          toast("Buffering…", "warn", 0);
+          toast("Buffering", "warn", 0);
           setTimeout(function(){ if(!refreshing) reload(); }, 700);
         } else {
           toast(shakaErrStr(err), "err", 6000);
@@ -812,7 +793,7 @@
 
       function onStall(){
         if(stallTmr) return;
-        toast("Buffering…", "warn", 0);
+        toast("Buffering", "warn", 0);
         if(!started || refreshing) return;
         stallTmr = setTimeout(function(){
           stallTmr = null;
@@ -833,14 +814,14 @@
       $vid.addEventListener("playing", onPlaying);
       $vid.addEventListener("error", function(){
         if(!refreshing){
-          toast("Buffering…", "warn", 0);
+          toast("Buffering", "warn", 0);
           setTimeout(function(){ if(!refreshing) reload(); }, 700);
         }
       });
 
       try {
-        setMsg("Loading stream…");
-        toast("Loading stream…", "warn", 0);
+        setMsg("Loading stream...");
+        toast("Loading stream", "warn", 0);
         await activePlayer.load(url);
         hideOverlay();
         toast("Ready — playing", "live", 3000);
@@ -848,19 +829,19 @@
         triggerPopup();
       } catch(_) {
         hideOverlay();
-        toast("Connection error — retrying…", "err", 0);
+        toast("Connection error — retrying", "err", 0);
         setTimeout(reload, 1500);
       }
     }
 
     document.getElementById('player-share-btn').addEventListener('click', function(){
       if (!currentActiveMatch) return;
-      var shareData = getShareText(currentActiveMatch);
+      var shareUrl = getShareUrl(currentActiveMatch);
       if (navigator.share) {
-        navigator.share({ title: shareData.title, text: shareData.text, url: shareData.url }).catch(function(){});
+        navigator.share({ title: getMatchTitle(currentActiveMatch), url: shareUrl }).catch(function(){});
       } else {
-        navigator.clipboard.writeText(shareData.url).then(function(){
-          toast("🔗 Link copied to clipboard!", "ok", 3000);
+        navigator.clipboard.writeText(shareUrl).then(function(){
+          toast("Link copied to clipboard", "ok", 3000);
         });
       }
     });
@@ -868,7 +849,7 @@
     async function main(){
       var urlId = getChId(), data;
       try{
-        setMsg("Loading…");
+        setMsg("Loading...");
         data = await loadData();
       }catch(_){
         return;
